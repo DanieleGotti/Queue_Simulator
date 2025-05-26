@@ -53,7 +53,7 @@ double tval(double p, int df) {
  */
 void Sstat::reset() {
     	n = 0;
-	x = x2 = last = 0.0;
+		x = x2 = last = 0.0;
     	maxValue = -HUGE_VAL;   // minore valore possibile iniziale per max
     	minValue = HUGE_VAL;    // maggiore valore possibile iniziale per min
 }
