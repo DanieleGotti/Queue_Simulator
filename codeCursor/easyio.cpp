@@ -1,5 +1,5 @@
 /************************************************************************
-	THIS FILE COLLAPSES THREE MODULES, FORMERLY CALLED
+	THIS FILE COLLAPSES THREE MODULES, FORMERLY CALLED 
 	EASYIO_PRIM.C, EASYIO_SCAN.C and EASYIO_READ.C
  ************************************************************************/
 #include <stdio.h>
@@ -8,94 +8,148 @@
 #include "easyio.h"
 
 /*----------------------------------------------------------------------*/
-/* easyio_prim.C                                                        */
-/* Funzioni di I/O basilari per facilitare l'interazione con l'utente. */
+/*                                                                      */
+/*                               easyio_prim.C                          */
+/*                                                                      */
+/*      This module contains some procedures which help the input       */
+/*      data process for an user program.                               */
+/*      Function contained are the following:                           */
+/*           - clear_screen : clear a page of the screen                */
+/*           - readln       : read the first character ignoring the     */
+/*			      remaining input stream until the          */
+/*			      following <CR>                            */
+/*           - beep         : beeps                                     */
+/*           - pausa        : waits the user to press <CR>              */  
+/*                                                                      */
 /*----------------------------------------------------------------------*/
 
-// Pulisce lo schermo usando il comando "clear"
+
 void clear_screen() {
         system("clear");
 	return;
 	}
 
-// Legge un singolo carattere dall'input e scarta tutto il resto fino a <CR>
+
 char readln() {
-	char d = getchar();    // Legge il primo carattere
+	char d = getchar();
 	char c = d;
-	while (d!='\n')        // Scarta i successivi fino a newline
+	while (d!='\n')
 		d=getchar();
-	return (c);            // Restituisce il primo carattere letto
+	return (c);
 	}
 
-// Emette un segnale acustico (beep)
+
 void beep() {
-	putchar(7); // ASCII Bell
+	putchar(7);
 	return;
 	}
 
-// Attende che l'utente prema <RETURN> prima di continuare
+
 void pausa() {
 	fprintf(stdout,"\n\n");
         fprintf(stdout,"     *****   Press <RETURN> to continue   *****");
-	readln();         // Attende input
-	clear_screen();   // Pulisce schermo
+	readln();
+	clear_screen();
 	return;
 	}
 
+
 /*----------------------------------------------------------------------*/
-/* easyio_scan.C                                                        */
-/* Funzioni di input utente con validazione simili a scanf().          */
+/*                                                                      */
+/*                               easyio_scan.C                          */
+/*                                                                      */
+/*                                                                      */
+/*      This module contains procedures similar to the scanf() function:*/
+/*      a variable is read from the standard input; once a valid value  */
+/*      is given, this value is stored in the 'parm' pointed location,  */
+/*      otherwise the parm pointer is unchanged.                        */
+/*      Functions:                                                      */
+/*         scandigit()                                                  */
+/*         scanint()                                                    */
+/*         scandouble()                                                 */
+/*         scanstring()                                                 */
+/*      Return values:                                                  */
+/*         - EASYIO_OKAY    : the value is valid;                       */
+/*         - EASYIO_DEFAULT : the first character in input is <CR>;     */
+/*         - EASYIO_ERROR   : error detected: string too long or        */
+/*			      non valid characters included.            */
+/*      As begin comment / EOL character, '#' is used.                  */
+/*                                                                      */
 /*----------------------------------------------------------------------*/
 
-// Legge una cifra (0-9) e la converte in intero
+//
+// scandigit: max string length: 1 character;
+//            valid characters: '0' to '9'
+//
+
 int	scandigit (int *parm) {
-	int	c = readln();  // Legge un carattere
+	int	c = readln();
 	switch (c)  {
 		case '\n' :
-			return(EASYIO_DEFAULT);  // Nessun input
-		case '0': case '1': case '2': case '3': case '4':
-		case '5': case '6': case '7': case '8': case '9':
-			*parm = c - '0';        // Converte da char a int
+			return(EASYIO_DEFAULT);
+		case '0':
+		case '1':
+		case '2':
+		case '3':
+		case '4':
+		case '5':
+		case '6':
+		case '7':
+		case '8':
+		case '9':
+			*parm = c -'0';
 			return(EASYIO_OKAY);
 		default:
-			return(EASYIO_ERROR);   // Input non valido
+			return(EASYIO_ERROR);
 		}
 	}
 
-// Legge un numero intero da input, con validazione
+
+/*----------------------------------------------------------------------*/
+
+
+
+//
+// scanint:   max string length: EASYIO_MAX_INT_LEN;
+//            valid characters: '0'-'9'
+//
+
 int	scanint (int *parm){
+
 	int 	c;
 	int	buf[EASYIO_MAX_BUF_LEN];
 	int 	buf_len;
 
-	// Riempie buffer con caratteri fino a newline o commento
-	for (buf_len=0; ((c=getchar()) != '\n') && (c != '#') &&
+	for (buf_len=0; ((c=getchar()) != '\n') && (c != '#') && 
 		(buf_len < EASYIO_MAX_BUF_LEN); buf_len++) buf[buf_len]=c;
-	if (c=='#') c=readln();	// Scarta commento
+	if (c=='#') c=readln();	/* empty buffer for next line */
 
-	// Gestione casi speciali
 	switch (buf_len)  {
-		case 0: return(EASYIO_DEFAULT);
-		case EASYIO_MAX_BUF_LEN: return(EASYIO_ERROR);
-		default: break;
+		case 0:
+			return(EASYIO_DEFAULT);
+		case EASYIO_MAX_BUF_LEN:
+			return(EASYIO_ERROR);
+		default:
+			break;
 		}
 
-	int 	intero=0, count=0;
-	short 	neg=1; // Segno
+	int 	intero=0;
+	int 	count=0;
+	short 	neg=1;
 
-	// Converte caratteri in numero intero
 	for (int i=0; i<buf_len; i++) {
 		c=buf[i];
 		if ((c!=' ') && (c!='\t')) {
 			if (count==-1) return(EASYIO_ERROR);
-			else  count++;
+		      	else  count++;
 			}
-		if (count > EASYIO_MAX_INT_LEN) return(EASYIO_ERROR);
-
-		if (c=='-') neg=-1;
+		if (count > EASYIO_MAX_INT_LEN) 
+			return(EASYIO_ERROR);
+		if (c=='-') 
+			neg=-1;
 		else if ((c >= '0') && (c <= '9'))
 			intero=(intero*10)+buf[i]-'0';
-		else if ((c==' ') || (c=='\t')) {
+	   	else if ((c==' ') || (c=='\t')) {
 			if (count!=0) count=-1;
 			}
 		else return(EASYIO_ERROR);
@@ -105,20 +159,32 @@ int	scanint (int *parm){
 	return(EASYIO_OKAY);
 	}
 
-// Versione di scanint per numeri long
+
+/*----------------------------------------------------------------------*/
+
+
+//
+// scanlong:   max string length: EASYIO_MAX_INT_LEN;
+//            valid characters: '0'-'9'
+//
+
 int	scanlong (long *parm){
+
 	int 	c;
 	int	buf[EASYIO_MAX_BUF_LEN];
 	int 	buf_len;
 
 	for (buf_len=0; ((c=getchar()) != '\n') && (c != '#') &&
 		(buf_len < EASYIO_MAX_BUF_LEN); buf_len++) buf[buf_len]=c;
-	if (c=='#') c=readln();
+	if (c=='#') c=readln();	/* empty buffer for next line */
 
 	switch (buf_len)  {
-		case 0: return(EASYIO_DEFAULT);
-		case EASYIO_MAX_BUF_LEN: return(EASYIO_ERROR);
-		default: break;
+		case 0:
+			return(EASYIO_DEFAULT);
+		case EASYIO_MAX_BUF_LEN:
+			return(EASYIO_ERROR);
+		default:
+			break;
 		}
 
 	long 	intero=0;
@@ -129,14 +195,15 @@ int	scanlong (long *parm){
 		c=buf[i];
 		if ((c!=' ') && (c!='\t')) {
 			if (count==-1) return(EASYIO_ERROR);
-			else count++;
+					else  count++;
 			}
-		if (count > EASYIO_MAX_INT_LEN) return(EASYIO_ERROR);
-
-		if (c=='-') neg=-1;
+		if (count > EASYIO_MAX_INT_LEN)
+			return(EASYIO_ERROR);
+		if (c=='-')
+			neg=-1;
 		else if ((c >= '0') && (c <= '9'))
 			intero=(intero*10)+buf[i]-'0';
-		else if ((c==' ') || (c=='\t')) {
+			else if ((c==' ') || (c=='\t')) {
 			if (count!=0) count=-1;
 			}
 		else return(EASYIO_ERROR);
@@ -146,23 +213,38 @@ int	scanlong (long *parm){
 	return(EASYIO_OKAY);
 	}
 
-// Legge un numero in virgola mobile (double) con validazione
+
+/*----------------------------------------------------------------------*/
+
+
+//
+// scandouble:   max string length: EASYIO_MAX_FLOAT_LEN;
+//            valid characters: '0'-'9', '.'
+//
+
 int	scandouble (double *parm) {
-	int 	c, buf_len;
+
+	int 	c;
+	int 	buf_len;
 	int	buf[EASYIO_MAX_BUF_LEN];
 
-	for (buf_len=0; ((c=getchar()) != '\n') && (c != '#') &&
+
+	for (buf_len=0; ((c=getchar()) != '\n') && (c != '#') && 
 		(buf_len < EASYIO_MAX_BUF_LEN); buf_len++) buf[buf_len]=c;
-	if (c=='#') c=readln();
+	if (c=='#') c=readln();		/* empty buffer for next line */
 
 	switch (buf_len)  {
-		case 0: return(EASYIO_DEFAULT);
-		case EASYIO_MAX_BUF_LEN: return(EASYIO_ERROR);
-		default: break;
+		case 0:
+			return(EASYIO_DEFAULT);
+		case EASYIO_MAX_BUF_LEN:
+			return(EASYIO_ERROR);
+		default:
+			break;
 		}
 
 	double 	mantissa=0.0;
-	int 	count=0, pot=0;
+	int 	count=0;
+	int 	pot=0;
 	double 	potenza=1.0;
 	short 	neg=1;
 
@@ -170,18 +252,21 @@ int	scandouble (double *parm) {
 		c=buf[i];
 		if ((c!=' ') && (c!='\t')) {
 			if (count==-1) return(EASYIO_ERROR);
-			else  count++;
+		      	else  count++;
 			}
-		if (count > EASYIO_MAX_FLOAT_LEN) return(EASYIO_ERROR);
-
-		if (c=='-') neg=-1;
+		if (count > EASYIO_MAX_FLOAT_LEN) 
+			return(EASYIO_ERROR);
+		if (c=='-') 
+			neg=-1;
 		else if ((c >= '0') && (c <= '9')) {
 			mantissa=(mantissa*10)+buf[i]-'0';
 			if (pot) potenza *= 10;
 			}
 	   	else if (c=='.') {
-			if ((buf[i+1] <'0') || (buf[i+1]>'9')) return(EASYIO_ERROR);
-			if (pot != 0) return(EASYIO_ERROR);
+			if ((buf[i+1] <'0') || (buf[i+1]>'9'))
+			   	return(EASYIO_ERROR);
+			if (pot != 0)
+			   	return(EASYIO_ERROR);
 			pot=1;
 			}
 	   	else if ((c==' ') || (c=='\t')) {
@@ -194,31 +279,41 @@ int	scandouble (double *parm) {
 	return(EASYIO_OKAY);
 	}
 
-// Legge una stringa alfanumerica valida e la copia in parm
+
+/*----------------------------------------------------------------------*/
+
+
+//
+// scanstring:   max string length: EASYIO_MAX_STR_LEN;
+//            valid characters:  '0'-'9','.','a'-'z','A','Z'
+//
+
 int	scanstring (char *parm) {
 	int 	c;
 	char 	buf[EASYIO_MAX_STR_LEN];
 	int 	buf_len=0;
 
-	for (buf_len=0; ((c=getchar()) != '\n') && (c != '#') &&
-		(buf_len < EASYIO_MAX_STR_LEN); buf_len++) {
+	for (buf_len=0; ((c=getchar()) != '\n') && (c != '#') && 
+		(buf_len < EASYIO_MAX_STR_LEN); buf_len++) { 
 			buf[buf_len]=c;
-			// Controllo validità caratteri
-			if ((c != '.') && (c < '0') && (c > '9') &&
-				(c < 'a') && (c > 'z') && (c < 'A') &&
+			if ((c != '.') && (c < '0') && (c > '9') && 
+				(c < 'a') && (c > 'z') && (c < 'A') && 
 				(c > 'Z'))  return(EASYIO_ERROR);
 			}
-	if (c=='#') c=readln();
+	if (c=='#') c=readln();	/* empty buffer for next line */
 
 	switch(buf_len)  {
-		case 0: return(EASYIO_DEFAULT);
-		case EASYIO_MAX_STR_LEN: return(EASYIO_ERROR);
+		case 0:
+			return(EASYIO_DEFAULT);
+		case EASYIO_MAX_STR_LEN:
+			return(EASYIO_ERROR);
 		default:
-			buf[buf_len] = '\0';    // Terminatore stringa
-			strcpy(parm, buf);      // Copia in destinazione
+			buf[buf_len] = '\0';
+			strcpy(parm, buf);
 			return(EASYIO_OKAY);
 		}
 	}
+
 
 /*----------------------------------------------------------------------*/
 /*                                                                      */
@@ -238,54 +333,57 @@ int	scanstring (char *parm) {
 /*          read_string()                                               */
 /*                                                                      */
 /*----------------------------------------------------------------------*/
+#define 	FPTR	stderr
 
-#define 	FPTR	stderr  // Output del prompt su stderr per garantire la visibilità anche in caso di reindirizzamenti
 
 //
 // read_bool:
 //	prompt: prompt user string;
 //	def   : proposed default
 //
+
 short 	read_bool(char *prompt, short def) {
 	int answer;
 	for (int timeout = 0; timeout <=5; timeout++)  {
-		// Visualizza il prompt con il valore di default
 		if (def == false)
 			fprintf(FPTR,"%s (y/n) [NO] > ",prompt);
 		    else
 			fprintf(FPTR,"%s (y/n) [YES] > ",prompt);
-		// Legge la risposta dell’utente
 		answer = readln();
 		switch(answer)  {
-			case '\n':  // Nessun input: usa il valore di default
+			case '\n':
 				return(def);
 			case 'y':
 			case 'Y':
-				return(true);  // Conferma positiva
+				return(true);
 			case 'n':
 			case 'N':
-				return(false); // Conferma negativa
+				return(false);
 			default:
-				beep();  // Segnala errore e ripete
+				beep();
 				break;
 			}
 		}
-	// Troppi tentativi errati: errore fatale
 	fprintf(FPTR, "\n FATAL ERROR: too many wrong attempts ");
 	fprintf(FPTR, "in read_bool() \n");
 	exit(-1);
-	return(false); 	    // non viene eseguito: per evitare warning del compilatore
+	return(false); 	    // not used: just to be nice with the compiler
 	}
+
+
 
 //
 // overloaded version without default
 //
 short 	read_bool(char *prompt) {
-	return(read_bool(prompt, true));  // Default implicito: true
+	return(read_bool(prompt, true));
 	}
 
 
+
 /*----------------------------------------------------------------------*/
+
+
 
 //
 // read_digit:
@@ -295,7 +393,7 @@ short 	read_bool(char *prompt) {
 //	max   : superior limit
 //
 int 	read_digit (char *prompt, int def, int min, int max) {
-	// Controlli di validità dei limiti
+
 	if (min < 0) min = 0;
 	if (max < 0) max = 0;
 	if (min > 9) min = 9;
@@ -316,17 +414,17 @@ int 	read_digit (char *prompt, int def, int min, int max) {
 
 	for (int timeout = 0; timeout <= 5; timeout++)  {
 		fprintf(FPTR,"%s ", prompt);
-		if (failed) fprintf(FPTR, "(%d::%d) ", min, max);  // Mostra limiti solo dopo un errore
-		fprintf(FPTR,"[%d] > ",def);  // Mostra default
+		if (failed) fprintf(FPTR, "(%d::%d) ", min, max);
+		fprintf(FPTR,"[%d] > ",def);
 		esito = scandigit(&digit);
 		switch(esito)  {
 			case EASYIO_DEFAULT:
-				return(def);  // Nessun input: ritorna default
+				return(def);
 			case EASYIO_OKAY:
 				if ((digit >= min) && (digit <= max))
-					return(digit);  // Valore valido
+					return(digit);
 			case EASYIO_ERROR:
-				beep();  // Errore: ripeti input
+				beep();
 				failed = 1;
 				break;
 			}
@@ -334,19 +432,28 @@ int 	read_digit (char *prompt, int def, int min, int max) {
 	fprintf(FPTR, "\n FATAL ERROR: too many wrong attempts ");
 	fprintf(FPTR, "in read_digit() \n");
 	exit(-1);
-	return(false);
+	return(false); 	    // not used: just to be nice with the compiler
 	}
 
-// Versioni semplificate con meno parametri
+
+//
+// overloaded version with no check
+//
 int 	read_digit (char *prompt, int def) {
 	return(read_digit(prompt, def, 0, 9));
 	}
+
+//
+// overloaded version with no check and default
+//
 int 	read_digit (char *prompt) {
 	return(read_digit(prompt, 0, 0, 9));
 	}
 
 
 /*----------------------------------------------------------------------*/
+
+
 
 //
 // read_int:
@@ -358,6 +465,7 @@ int 	read_digit (char *prompt) {
 //
 
 int 	read_int (char *prompt, char *unit, int def, int min, int max) {
+
         if (min > max) {
 		int tmp = min;
 	  	min = max;
@@ -372,7 +480,6 @@ int 	read_int (char *prompt, char *unit, int def, int min, int max) {
 	short	failed = 0;
 
 	for (int timeout = 0; timeout <= 5; timeout++)  {
-		// Visualizza prompt, limiti (se errore precedente) e default
 		fprintf(FPTR,"%s ", prompt);
 		if (failed) fprintf(FPTR, "(%d::%d) ", min, max);
 		fprintf(FPTR,"[%d%s] > ", def, unit);
@@ -381,7 +488,7 @@ int 	read_int (char *prompt, char *unit, int def, int min, int max) {
 			case EASYIO_DEFAULT :
 				return(def);
 			case EASYIO_OKAY :
-				if ((intero >= min) && (intero <= max))
+				if ((intero >= min) && (intero <= max)) 
 					return(intero);
 			case EASYIO_ERROR :
 				beep();
@@ -392,10 +499,13 @@ int 	read_int (char *prompt, char *unit, int def, int min, int max) {
 	fprintf(FPTR, "\n FATAL ERROR: too many wrong attempts ");
 	fprintf(FPTR, "in read_int() \n");
 	exit(-1);
-	return(false);
+	return(false); 	    // not used: just to be nice with the compiler
 	}
 
-// Versioni sovraccaricate con meno argomenti
+
+//
+// overloading without unit and/or range
+//
 int 	read_int (char *prompt, int def, int min, int max) {
 	return( read_int(prompt, "", def, min, max));
 	}
@@ -409,21 +519,27 @@ int 	read_int (char *prompt) {
 	return( read_int(prompt, 0, EIO_MIN_INT, EIO_MAX_INT));
 	}
 
-
 /*----------------------------------------------------------------------*/
+
 
 //
 // read_long:
-// Identica a read_int ma per valori long
+//	prompt: prompt user string;
+//	unit  : measurement unit of the reading value
+//	def   : proposed default
+//	min   : inferior limit
+//	max   : superior limit
 //
+
 long 	read_long (char *prompt, char *unit, long def, long min, long max) {
-	if (min > max) {
+
+		  if (min > max) {
 		long tmp = min;
 		min = max;
 		max = tmp;
 		}
 
-	if (def < min) def = min;
+		  if (def < min) def = min;
 	if (def > max) def = max;
 
 	long 	intero;
@@ -450,9 +566,13 @@ long 	read_long (char *prompt, char *unit, long def, long min, long max) {
 	fprintf(FPTR, "\n FATAL ERROR: too many wrong attempts ");
 	fprintf(FPTR, "in read_long() \n");
 	exit(-1);
-	return(false);
+	return(false); 	    // not used: just to be nice with the compiler
 	}
 
+
+//
+// overloading without unit and/or range
+//
 long 	read_long (char *prompt, long def, long min, long max) {
 	return( read_long(prompt, "", def, min, max));
 	}
@@ -468,19 +588,26 @@ long 	read_long (char *prompt) {
 
 /*----------------------------------------------------------------------*/
 
+
 //
 // read_double:
-// Per lettura di numeri in virgola mobile, simile a read_int
+//	prompt: prompt user string;
+//	unit  : measurement unit of the reading value
+//	def   : proposed default
+//	min   : inferior limit
+//	max   : superior limit
 //
+
 double 	read_double (char *prompt, char *unit, double def,
 			double min, double max) {
-	if (min > max) {
+
+		  if (min > max) {
 		double tmp = min;
 		min = max;
 		max = tmp;
 		}
 
-	if (def < min) def = min;
+		  if (def < min) def = min;
 	if (def > max) def = max;
 
 	double 	doppio;
@@ -496,7 +623,7 @@ double 	read_double (char *prompt, char *unit, double def,
 			case EASYIO_DEFAULT :
 				return(def);
 			case EASYIO_OKAY :
-				if ((doppio >= min) && (doppio <= max))
+				if ((doppio >= min) && (doppio <= max)) 
 					return(doppio);
 			case EASYIO_ERROR :
 				beep();
@@ -507,8 +634,11 @@ double 	read_double (char *prompt, char *unit, double def,
 	fprintf(FPTR, "\n FATAL ERROR: too many wrong attempts ");
 	fprintf(FPTR, "in read_double() \n");
 	exit(-1);
-	return(false);
+	return(false); 	    // not used: just to be nice with the compiler
 	}
+
+//
+// overloading without unit and/or range
 
 double 	read_double (char *prompt, double def, double min, double max) {
 	return( read_double(prompt, "", def, min, max));
@@ -524,6 +654,7 @@ double 	read_double (char *prompt) {
 	}
 
 
+
 /*----------------------------------------------------------------------*/
 
 //
@@ -531,7 +662,9 @@ double 	read_double (char *prompt) {
 //	prompt: prompt user string;
 //	def   : proposed default
 //
+
 char * 	read_string (char *prompt, char *def) {
+
 	short 	esito;
 	static char 	stringa[EASYIO_MAX_STR_LEN];
 
@@ -540,20 +673,25 @@ char * 	read_string (char *prompt, char *def) {
 		esito = scanstring(stringa);
 		switch(esito)  {
 			case EASYIO_DEFAULT:
-				return(def);  // Usa il default
+				return(def);
 			case EASYIO_OKAY:
-				return(stringa);  // Restituisce la stringa inserita
+				return(stringa);
 			case EASYIO_ERROR:
-				beep();  // Errore: ripete il ciclo
+				beep();
 				break;
 			}
 		}
 	fprintf(FPTR, "\n FATAL ERROR: too many wrong attempts ");
 	fprintf(FPTR, "in read_string() \n");
 	exit(-1);
-	return(false);
+	return(false); 	    // not used: just to be nice with the compiler
 	}
 
+
+//
+// overloading without default
+//
 char * 	read_string (char *prompt) {
 	return( read_string(prompt, ""));
 	}
+

@@ -1,63 +1,72 @@
+/*
+ * STOPANDWAIT.CPP
+ *
+ * Implementation of the StopAndWaitSimulator class, which simulates a stop-and-wait queueing system
+ * with Poisson arrivals, exponential service, transmission errors, and explicit ACK channel.
+ *
+ * The simulator collects user parameters, runs multiple simulation runs, and computes statistics
+ * on the average packet delay, confidence intervals, and retransmissions.
+ */
+
 #include "stopandwait.h"
 #include "easyio.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 
+// Constructor: initializes statistics and counters
 StopAndWaitSimulator::StopAndWaitSimulator(int argc, char *argv[]) : simulator(argc, argv) {
     delay = new Sstat();
     total_retransmissions = 0;
 }
 
+// Destructor: releases statistics memory
 StopAndWaitSimulator::~StopAndWaitSimulator() {
     delete delay;
 }
 
+// Reads all simulation parameters from the user
 void StopAndWaitSimulator::input() {
-    printf("MODEL PARAMETERS:\n\n");
-
-    // Modello arrivi (solo Poisson, valore fisso 1)
+    printf("\nMODEL PARAMETERS:\n\n");
     printf("\n Arrivals model:\n");
     printf("1 - Poisson:>\n");
-    read_int("", 1, 1, 1); // Solo per coerenza grafica
-
-    // Carico traffico (utilizzo della coda, Erlang)
-    lambda = read_double("Traffic load (Erlang)", 0.4, 0.01, 0.999);
-
-    // Modello servizio (solo esponenziale, valore fisso 1)
+    read_int("", 1, 1, 1);
+    double load = read_double("Traffic load (Erlang)", 0.4, 0.01, 0.999);
     printf("\n Service model:\n");
     printf("1 - Exponential:>\n");
-    read_int("", 1, 1, 1); // Solo per coerenza grafica
-
-    // Durata media del servizio in secondi
+    read_int("", 1, 1, 1);
     double avg_service = read_double("Average service duration (s)", 0.4, 0.01, 100);
     mu = 1.0 / avg_service;
-
-    // Parametri specifici stop-and-wait
-    p = read_double("Error probability (p)", 0.01, 0.0, 1.0);
-    delta = read_double("ACK arrivals rate (delta)", 1.0, 0.01, 100);
-    muack = read_double("ACK service mean duration (muack)", 0.1, 0.01, 100);
-
-    printf("SIMULATION PARAMETERS:\n\n");
+    lambda = load * mu;
+    p = read_double("Error probability p", 0.01, 0.0, 1.0);
+    delta = read_double("ACK arrivals rate delta (1/s)", 1.0, 0.01, 100);
+    double avg_ack_service = read_double("ACK average service duration (s)", 0.1, 0.01, 100);
+    muack = 1.0 / avg_ack_service;
+    printf("\nSIMULATION PARAMETERS:\n\n");
     Trslen = read_double("Simulation transient len (s)", 100, 0.01, 10000);
     Runlen = read_double("Simulation RUN len (s)", 100, 0.01, 10000);
     NRUNmin = read_int("Simulation number of RUNs", 5, 2, 100);
+    printf("\n");
 }
 
+// Resets counters for a new simulation run
 void StopAndWaitSimulator::clear_counters() {
     packets = 0.0;
     tot_delay = 0.0;
     total_retransmissions = 0;
 }
 
+// Resets statistics for a new set of runs
 void StopAndWaitSimulator::clear_stats() {
     delay->reset();
 }
 
+// Adds a sample to the delay statistics
 void StopAndWaitSimulator::update_stats(double d) {
     *delay += d;
 }
 
+// Prints the trace for a single run
 void StopAndWaitSimulator::print_trace(int Run) {
     fprintf(fptrc, "*********************************************\n");
     fprintf(fptrc, "                 TRACE RUN %d                \n", Run);
@@ -69,47 +78,45 @@ void StopAndWaitSimulator::print_trace(int Run) {
     fflush(fptrc);
 }
 
+// Initializes the simulation (reads parameters)
 void StopAndWaitSimulator::init() {
     input();
 }
 
+// Main simulation loop: executes NRUNmin runs, each with its own statistics
 void StopAndWaitSimulator::run() {
-    // Simulazione stop-and-wait: per ogni pacchetto, simula trasmissione, errore, attesa ACK
     clear_stats();
     int current_run = 1;
     while (current_run <= NRUNmin) {
         clear_counters();
         double clock = 0.0;
-        long run_retransmissions = 0;
         while (clock < Runlen) {
-            // Genera tempo di arrivo pacchetto
+            // Generate next packet arrival (Poisson process)
             double inter_arrival = -log(1.0 - ((double)rand() / RAND_MAX)) / lambda;
             clock += inter_arrival;
             if (clock >= Runlen) break;
-            // Simula trasmissione pacchetto
-            double service_time = -log(1.0 - ((double)rand() / RAND_MAX)) / mu;
-            double tx_end = clock + service_time;
-            // Simula errore
-            bool error = ((double)rand() / RAND_MAX) < p;
-            double ack_time = 0.0;
+            // Simulate stop-and-wait transmission with possible retransmissions
+            double total_delay = 0.0;
             int retransmissions = 0;
-            double tx_start = clock;
+            bool error = ((double)rand() / RAND_MAX) < p;
             while (error) {
-                // Ritrasmetti: attesa ACK
-                double ack_wait = -log(1.0 - ((double)rand() / RAND_MAX)) / delta;
-                ack_time += ack_wait;
+                // Each failed transmission: add service time, count retransmission
+                double service_time = -log(1.0 - ((double)rand() / RAND_MAX)) / mu;
+                total_delay += service_time;
                 retransmissions++;
-                // Nuovo errore?
                 error = ((double)rand() / RAND_MAX) < p;
             }
-            total_retransmissions += retransmissions;
-            // ACK ricevuto
+            // Last (successful) transmission
+            double service_time = -log(1.0 - ((double)rand() / RAND_MAX)) / mu;
+            total_delay += service_time;
+            // Wait for ACK arrival and processing
             double ack_wait = -log(1.0 - ((double)rand() / RAND_MAX)) / delta;
-            ack_time += ack_wait;
-            double total_delay = (tx_end - tx_start) + ack_time;
+            double ack_proc = -log(1.0 - ((double)rand() / RAND_MAX)) / muack;
+            total_delay += ack_wait + ack_proc;
             packets += 1.0;
             tot_delay += total_delay;
-            clock = tx_end + ack_time; // Avanza clock dopo ACK
+            total_retransmissions += retransmissions;
+            clock += total_delay;
         }
         if (packets > 0)
             update_stats(tot_delay / packets);
@@ -118,31 +125,33 @@ void StopAndWaitSimulator::run() {
     }
 }
 
+// Prints the final results, including statistics and theoretical values
 void StopAndWaitSimulator::results() {
     fprintf(fpout, "*********************************************\n");
     fprintf(fpout, "           SIMULATION RESULTS                \n");
     fprintf(fpout, "*********************************************\n\n");
-
     fprintf(fpout, "Input parameters:\n");
     fprintf(fpout, "Transient length (s)         %5.3f\n", Trslen);
     fprintf(fpout, "Run length (s)               %5.3f\n", Runlen);
     fprintf(fpout, "Number of runs               %5d\n", NRUNmin);
-    fprintf(fpout, "Traffic load                 %5.3f\n", lambda * (1.0 / mu));
+    fprintf(fpout, "Traffic load                 %5.3f\n", lambda / mu);
     fprintf(fpout, "Average service duration     %5.3f\n", 1.0 / mu);
-    fprintf(fpout, "Error probability (p)        %5.3f\n", p);
-    fprintf(fpout, "ACK arrivals rate (delta)    %5.3f\n", delta);
-    fprintf(fpout, "ACK service mean duration    %5.3f\n", muack);
-
+    fprintf(fpout, "Error probability            %5.3f\n", p);
+    fprintf(fpout, "ACK arrivals rate            %5.3f\n", delta);
+    fprintf(fpout, "ACK average service duration %5.3f\n", 1.0 / muack);
     fprintf(fpout, "Results:\n");
     fprintf(fpout, "Average Delay                %2.6f   +/- %.2e  p:%3.2f\n",
             delay->mean(),
             delay->confidence(.95),
             delay->confpercerr(.95));
-
-    // Calcolo teorico tempo medio di attraversamento per stop-and-wait
-    // T = (1/(mu*(1-p))) + (1/delta)  (approssimazione: trasmissione + attesa ack, con ritrasmissioni)
-    double teorico = (1.0 / (mu * (1.0 - p))) + (1.0 / delta);
+    // Theoretical delay: tT/(1-p), where tT = 1/mu + 1/delta + 1/muack
+    double ttx = 1.0 / mu;
+    double tack = 1.0 / delta + 1.0 / muack;
+    double tT = ttx + tack;
+    double teorico = tT / (1.0 - p);
     fprintf(fpout, "Theoretical average delay    %2.6f\n", teorico);
     fprintf(fpout, "Difference (sim - theory)    %+.6f\n", delay->mean() - teorico);
     fprintf(fpout, "Total retransmitted packets  %ld\n", total_retransmissions);
+    fprintf(fpout, "D  %2.6f   %2.6f   %.2e %2.6f\n\n",
+            lambda / mu, delay->mean(), delay->confidence(.95), teorico);
 } 

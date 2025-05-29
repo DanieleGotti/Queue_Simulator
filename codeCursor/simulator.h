@@ -1,7 +1,7 @@
 /* -*- C++ -*- */
 /********************************************************
 		SIMULATOR.H
-	Classe astratta per programmi di simulazione
+	Abstract class for simulation program
 
 *******************************************************/
 
@@ -10,25 +10,20 @@
 
 #include <stdio.h>
 
-class simulator {
+class simulator{
 protected:
-	FILE *fptrc;   // file pointer per il trace (log di eventi)
-	FILE *fpout;   // file pointer per l'output dei risultati
-
-	void read_args(int argc, char* argv[]);  // metodo per leggere argomenti da riga di comando
-
-	// Metodi astratti che devono essere implementati nelle classi derivate
-	virtual void input(void) = 0;         // metodo per leggere input specifico della simulazione
-	virtual void print_trace(int i) = 0; // metodo per stampare il trace/log
-
+      FILE *fptrc;
+	FILE *fpout;
+	void read_args(int argc,char* argv[]);
+	virtual void input(void) = 0;	
+	virtual void print_trace(int i) = 0;
 public:
-	simulator(int argc, char* argv[]);  // costruttore con argomenti da linea di comando
-	virtual ~simulator(void) {;}        // distruttore virtuale (vuoto)
-
-	// Metodi astratti pubblici che definiscono il ciclo della simulazione
-	virtual void init(void) = 0;    // inizializza la simulazione
-	virtual void run(void) = 0;     // esegue la simulazione
-	virtual void results(void) = 0; // mostra i risultati
+	simulator(int argc,char* argv[]);
+	virtual ~simulator(void) {;}
+	virtual void init(void) = 0;
+	virtual void run(void) = 0;
+	virtual void results(void) = 0;
 };
+
 
 #endif
