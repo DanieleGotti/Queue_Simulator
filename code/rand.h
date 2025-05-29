@@ -21,19 +21,20 @@
 /*----------------------------------------------------------------------*/
 #ifndef _RAND_H
 #define _RAND_H
-
 #include <math.h>
 #include "global.h"
 
-/*
- * Vettore contenente i semi per la generazione di numeri casuali.
- * Viene inizializzato in rand.c oppure con la macro RESET_SEED.
+
+/* 
+ * vettore contenente i semi per la generazione di eventi casuali
+ * inizializzato in rand.c oppure inizializzato chiamando RESET_SEED
  */
 extern	int	lseed[11];
 
+
+
 /*
- * Macro di inizializzazione dei semi di generazione.
- * Assegna valori fissi al vettore lseed, pronti per la generazione casuale.
+ *macro di inizializzazione semi 
  */
 #define RESET_SEED		\
 {				\
@@ -50,11 +51,17 @@ lseed[9] = 1410143363;		\
 lseed[10] =1282538739;		\
 }
 
+
+
+
 /*
- * Macro per generare un numero pseudocasuale double compreso tra 0 e 1,
- * usando il seme di indice IS (1..10).
- * Assegna il risultato alla variabile PSEUDONUM.
+ * MACRO di generazione casuale di un double compreso tra 0 e 1 
+ *
+ * come ingresso riceve il valore  IS = seme di generazione (1..10)
+ * come uscita assegna il valore casuale alla variabile
+ * double PSEUDONUM
  */
+
 #define	la  16807
 #define	lb15  32768
 #define	lb16  65536
@@ -75,11 +82,13 @@ double  _x;							 \
 	lseed[IS] = iseed;                                       \
 	_x = lseed[IS];                                           \
 	PSEUDONUM=(_x*4.656612875e-10);                           \
-}
+}   
+
+
 
 /*
- * Macro per generare un numero intero uniforme compreso tra Min e Max,
- * usando il seme IS. Il risultato viene salvato in ESITO.
+ * macro di generazione di un numero intero compreso tra due 
+ * limiti (Min e Max)
  */
 #define		GEN_UNIF(IS, Min, Max, ESITO)			\
 	{							\
@@ -88,10 +97,18 @@ double  _x;							 \
 	ESITO = (int)((Min) + pseudonum * (fabs((double)((Max) - (Min)))+1));\
 	}
 
+
+
+
 /*
- * Macro per generare un evento di Poisson, con probabilità PROB.
- * Restituisce 0 o 1 in ESITO a seconda se l'evento si verifica.
+ * macro di generazione di un evento di poisson 
+ * 
+ * restituisce come valore 0 o 1 a seconda se l'evento e` stato
+ * generato o meno. Il valore e` restituito in ESITO.
+ * richiede in ingresso il seme di generazione casuale IS e la
+ * probabilita` dell'evento PROB
  */
+
 #define 	GEN_POISSON(IS, PROB, ESITO)		\
 	{						\
 	double pseudonum;				\
@@ -100,10 +117,15 @@ double  _x;							 \
 	           else ESITO=1;			\
 	}
 
+
+
 /*
- * Macro per generare un numero con distribuzione Bernoulliana,
- * sommando fino a TOP eventi di Poisson con probabilità PROB.
+ * macro di generazione di un evento di bernoulli
+ *
+ * restituisce un numero compreso tra 0 e TOP iterando eventi di
+ * poisson
  */
+
 #define		GEN_BERNOULLI(IS, TOP, PROB, ESITO)	\
 	{						\
 	int NUM;        				\
@@ -116,9 +138,13 @@ double  _x;							 \
 	   }						\
 	}
 
+
+
 /*
- * Macro per generare un numero double esponenziale con media AVERAGE.
+ * macro di generazione di un double con distribuzione
+ * esponenziale
  */
+
 #define		GEN_EXP(IS, AVERAGE, RES)		\
 	{						\
         double pseudonum;				\
@@ -126,10 +152,13 @@ double  _x;							 \
         RES = -log(pseudonum) * (double)(AVERAGE);	\
   	}
 
+
+
 /*
- * Macro per generare un intero con distribuzione esponenziale,
- * approssimando il valore double e arrotondando.
+ * macro di generazione di un intero con distribuzione
+ * esponenziale
  */
+
 #define 	GEN_EXP_INT(IS, AVERAGE, RES)		\
 	{						\
 	double expnum;					\
@@ -139,8 +168,10 @@ double  _x;							 \
 	}
 
 /*
- * Macro per generare un intero esponenziale con valore minimo 1.
+ * macro di generazione di un intero con distribuzione
+ * esponenziale e valore minimo 1
  */
+
 #define 	GEN_EXP_ONE(IS, AVERAGE, RES)		\
 	{						\
 	double expnum;					\
@@ -149,10 +180,12 @@ double  _x;							 \
 	if (RES < 0) RES=0;				\
 	}
 
-/* Funzioni dichiarate (definite altrove) */
 int arrotonda(double x);
+
 int transmit(double g);
+
 int fact(int i);
+
 int n_interf_by_poisson(double average);
 
 #endif	// _MACRO_RANDOM_H

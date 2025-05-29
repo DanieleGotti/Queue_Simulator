@@ -1,6 +1,7 @@
 /*******************************************************
-EVENT . H
+		     EVENT . H
 *******************************************************/
+
 
 #ifndef _EVENT_H
 #define _EVENT_H
@@ -8,58 +9,54 @@ EVENT . H
 #include "global.h"
 #include "buffer.h"
 
-// Classe base per eventi nella simulazione
-class event {
+
+class event{
 public:
-	event*	next;   // puntatore all'evento successivo nella lista eventi
-	double 	time;   // tempo in cui si verifica l'evento
-
-	event();                 // costruttore di default
-	event(double Time);      // costruttore con tempo specificato
-	event(event* Next, double Time); // costruttore con evento successivo e tempo
-	~event(){}               // distruttore vuoto (virtuale per eredità)
-
-	// Metodo virtuale da sovrascrivere per definire il comportamento dell'evento
-	virtual void body() {}
+	event*	next;	// next event
+	double 	time;	// event time
+	event();
+	event(double Time);
+	event(event* Next, double Time);
+	~event(){}
+	virtual void body(){}
 };
 
-// Implementazioni inline dei costruttori della classe event
-inline event::event() {
-	next = NULL;
-	time = -1;               // tempo di default -1 indica evento non inizializzato
-}
+inline event::event(){
+	next=NULL;
+	time=-1;
+	}
 
-inline event::event(event* Next, double Time) {
-	next = Next;
-	time = Time;
-}
+inline event::event(event* Next, double Time){
+	next=Next;
+	time=Time;
+	}
 
-inline event::event(double Time) {
-	time = Time;
-}
+inline event::event(double Time){
+	time=Time;
+	}
 
-// Classe derivata per eventi di arrivo
-class arrival : public event {
-	buffer* buf;              // buffer associato all'arrivo (dove inserire il pacchetto)
+class arrival: public event{
 
-public:
-	int source_id;            // id della sorgente del pacchetto/evento
-	virtual void body();      // implementazione del comportamento specifico di arrivo
-	arrival(double Time, buffer* Buf); // costruttore con tempo e buffer
-};
+	buffer* buf;
 
-// Classe derivata per eventi di servizio (servizio del buffer)
-class service : public event {
-	buffer* buf;              // buffer associato al servizio
+	public:
+	int source_id;
+	virtual void body();
+	arrival(double Time, buffer* Buf);
+	};
 
-public:
-	virtual void body();      // implementazione del comportamento specifico di servizio
-	service(double Time, buffer* Buf) : event(Time) { buf = Buf; }  // costruttore con tempo e buffer
-};
+class service: public event{
 
-// Implementazione inline del costruttore di arrival
-inline arrival::arrival(double Time, buffer* Buf) : event(Time) {
-	buf = Buf;
-}
+	buffer* buf;
+
+	public:
+	virtual void body();
+	service(double Time, buffer* Buf): event(Time){buf=Buf;}
+	};
+
+inline arrival::arrival(double Time, buffer* Buf): event(Time){
+	buf=Buf;
+	}
 
 #endif
+

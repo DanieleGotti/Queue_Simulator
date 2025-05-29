@@ -1,3 +1,0 @@
-C:/Users/Asus/Documents/Università magistrale/1o anno - Semestre 2/Reti di telecomunicazione/Progetto/Git/Queue_Simulator/code2/cmake-build-debug/CMakeFiles/code2.dir
-C:/Users/Asus/Documents/Università magistrale/1o anno - Semestre 2/Reti di telecomunicazione/Progetto/Git/Queue_Simulator/code2/cmake-build-debug/CMakeFiles/edit_cache.dir
-C:/Users/Asus/Documents/Università magistrale/1o anno - Semestre 2/Reti di telecomunicazione/Progetto/Git/Queue_Simulator/code2/cmake-build-debug/CMakeFiles/rebuild_cache.dir

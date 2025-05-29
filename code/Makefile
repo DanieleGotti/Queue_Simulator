@@ -33,7 +33,8 @@ OBJS	      = main.o \
 		event.o \
 		easyio.o \
 		stat.o \
-		buffer.o 
+		buffer.o \
+		stopandwait.o
 
 PROGRAM	      = queue 
 
@@ -47,7 +48,8 @@ SRCS	      = main.cpp \
 		event.cpp \
 		easyio.cpp \
 		stat.cpp \
-		buffer.cpp
+		buffer.cpp \
+		stopandwait.cpp
 
 all:		$(PROGRAM)
 
