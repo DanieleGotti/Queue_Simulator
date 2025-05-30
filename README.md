@@ -8,11 +8,12 @@ Sono previste due modalità di simulazione:
 - **Modalità 1:** simulazione di una coda semplice con arrivi di Poisson e servizio esponenziale negativa, senza riscontri o errori;  
 - **Modalità 2:** simulazione del protocollo Stop-and-Wait con trasmissione soggetta a errori e riscontri inviati su un canale separato secondo un processo di Poisson.  
 
-Gli arrivi dei pacchetti seguono un processo di Poisson con tasso \(\lambda\), mentre i tempi di servizio sono esponenziali negativi con media \(1/\mu\).  
-Durante la trasmissione, un errore può verificarsi con probabilità \(p\).  
-Il ricevitore invia riscontri (acknowledgements) su un canale separato in istanti distribuiti secondo un processo di Poisson con tasso \(\delta\).  
-Nel protocollo Stop-and-Wait il trasmettitore invia un pacchetto e attende il riscontro prima di procedere.  
-Il software riceve in input tutti i parametri e calcola il tempo medio di attraversamento del pacchetto attraverso il sistema.
+Gli arrivi dei pacchetti seguono un processo di Poisson con tasso **lambda (λ)**, mentre i tempi di servizio sono esponenziali negativi con media **1/mu (1/μ)**.  
+Durante la trasmissione, un errore può verificarsi con probabilità **p**.  
+Il ricevitore invia riscontri (acknowledgements) su un canale separato in istanti distribuiti secondo un processo di Poisson con tasso **delta (δ)**.  
+Nel protocollo Stop-and-Wait, il trasmettitore invia un pacchetto e attende il riscontro prima di procedere.  
+Il software riceve in input tutti i parametri e calcola il **tempo medio di attraversamento** del pacchetto attraverso il sistema.
+
 
 
 ## 🎯 Obiettivo  
