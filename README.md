@@ -32,4 +32,4 @@ Il software riceve in input tutti i parametri e calcola il tempo medio di attrav
 | Nome | Matricola | GitHub |
 |-------|----------|--------|
 | Daniele Gotti | 1079011 | [@DanieleGotti](https://github.com/DanieleGotti) |  
-| Gabriele Mazzoleni | 1073928 | [@aminb00](https://github.com/aminb00) |
+| Amin Borqal | 1073928 | [@aminb00](https://github.com/aminb00) |
