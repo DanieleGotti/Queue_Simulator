@@ -12,6 +12,7 @@ Gli arrivi dei pacchetti seguono un processo di Poisson con tasso **λ**, mentre
 Durante la trasmissione, un errore può verificarsi con probabilità **p**.  
 Il ricevitore invia riscontri (acknowledgements) su un canale separato in istanti distribuiti secondo un processo di Poisson con tasso **δ**.  
 Nel protocollo Stop-and-Wait, il trasmettitore invia un pacchetto e attende il riscontro prima di procedere.  
+
 Il software riceve in input tutti i parametri e calcola il **tempo medio di attraversamento** del pacchetto attraverso il sistema.
 
 
